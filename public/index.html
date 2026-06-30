@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Los Hombres Lobo de Castronegro</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ════════ HUD (visible solo en juego) ════════ -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-item hud-round">Ronda <b id="hud-round-n">1</b> · <span id="hud-phase-label">Noche</span></div>
+    <div class="hud-item hud-timer" id="hud-timer">--:--</div>
+    <div class="hud-item hud-role-badge" id="hud-role-badge"><span class="dot"></span><span id="hud-role-name">Aldeano</span></div>
+  </div>
+
+  <!-- ════════ Pantalla: apodo ════════ -->
+  <section class="screen" id="screen-nickname">
+    <div class="frame center-col">
+      <div class="brand">
+        <div class="moon-emblem" id="emblem-nickname"></div>
+        <h1>Castronegro</h1>
+        <div class="tagline">Los Hombres Lobo</div>
+      </div>
+      <div class="field">
+        <label for="nickname-input">Tu apodo</label>
+        <input class="input" id="nickname-input" maxlength="16" placeholder="Ej. Lyra" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" id="btn-nickname-continue">Entrar a la aldea</button>
+      <div class="error-msg" id="nickname-error"></div>
+    </div>
+  </section>
+
+  <!-- ════════ Pantalla: menú ════════ -->
+  <section class="screen hidden" id="screen-menu">
+    <div class="frame center-col">
+      <div class="brand">
+        <div class="moon-emblem" id="emblem-menu"></div>
+        <h1>Castronegro</h1>
+        <div class="tagline">Bienvenido, <span id="menu-nickname-display">Jugador</span></div>
+      </div>
+      <div class="menu-options">
+        <button class="btn btn-gold" id="btn-create-room">Crear sala</button>
+        <button class="btn btn-ghost" id="btn-show-join">Unirse a sala</button>
+      </div>
+      <div class="field hidden" id="join-fields" style="margin-top:14px;">
+        <label for="room-code-input">Código de sala</label>
+        <input class="input" id="room-code-input" maxlength="6" placeholder="ABC123" style="text-transform:uppercase;letter-spacing:.1em;">
+        <button class="btn btn-primary" id="btn-join-room" style="margin-top:10px;">Entrar</button>
+      </div>
+      <div class="error-msg" id="menu-error"></div>
+    </div>
+  </section>
+
+  <!-- ════════ Pantalla: lobby ════════ -->
+  <section class="screen hidden" id="screen-lobby">
+    <div class="frame lobby-card">
+      <div class="lobby-head">
+        <div>
+          <div class="room-code-label">Código de sala</div>
+          <div class="room-code" id="lobby-room-code">------</div>
+        </div>
+        <button class="copy-btn" id="btn-copy-code">Copiar</button>
+      </div>
+
+      <div class="section-label">Jugadores (<span id="lobby-player-count">0</span>)</div>
+      <div class="player-grid" id="lobby-player-grid"></div>
+
+      <div id="host-settings">
+        <div class="section-label">Roles especiales</div>
+        <div class="role-toggles" id="role-toggles"></div>
+
+        <div class="wolf-count-row">
+          <span class="label">Hombres lobo</span>
+          <div class="stepper">
+            <button id="wolf-count-minus">−</button>
+            <span class="count" id="wolf-count-value">1</span>
+            <button id="wolf-count-plus">+</button>
+          </div>
+        </div>
+      </div>
+      <div id="guest-settings-note" class="subtle hidden" style="margin-top:10px;font-size:13px;">El anfitrión está configurando la partida…</div>
+
+      <button class="btn btn-primary" id="btn-start-game" style="margin-top:18px;">Comenzar partida</button>
+      <div class="error-msg" id="lobby-error"></div>
+
+      <!-- Manual de roles -->
+      <div style="margin-top:18px;width:100%;">
+        <button class="btn btn-ghost" id="btn-toggle-manual" style="width:100%;font-size:12px;padding:8px;">
+          📖 Ver instrucciones y roles
+        </button>
+        <div id="manual-panel" class="hidden" style="margin-top:10px;text-align:left;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ Pantalla: juego ════════ -->
+  <section class="screen hidden" id="screen-game" style="padding-top:0;align-items:stretch;">
+    <div class="game-wrap">
+      <div class="game-main">
+
+        <!-- Carta de revelación de rol -->
+        <div class="panel hidden" id="role-reveal-panel">
+          <div class="role-reveal">
+            <div class="flip-card" id="role-flip-card">
+              <div class="flip-inner">
+                <div class="flip-face flip-front" id="role-flip-front"></div>
+                <div class="flip-face flip-back" id="role-flip-back"></div>
+              </div>
+            </div>
+            <div class="role-name-tag" id="role-reveal-name"></div>
+            <div class="role-desc" id="role-reveal-desc"></div>
+          </div>
+        </div>
+
+        <!-- Bitácora del narrador -->
+        <div class="panel">
+          <div class="panel-title">📜 El Narrador</div>
+          <div class="narrator-log" id="narrator-log"></div>
+        </div>
+
+        <!-- Zona de acción (cambia según la fase) -->
+        <div class="panel hidden" id="action-panel">
+          <div class="action-prompt">
+            <div class="icon" id="action-icon"></div>
+            <div class="panel-title" id="action-title"></div>
+            <div class="panel-sub" id="action-sub"></div>
+          </div>
+          <div id="action-body"></div>
+        </div>
+
+        <!-- Tablero de jugadores vivos/muertos -->
+        <div class="panel">
+          <div class="panel-title">🏘️ La Aldea</div>
+          <div class="players-board" id="players-board"></div>
+        </div>
+      </div>
+
+      <!-- Chat lateral (desktop) -->
+      <div class="game-side">
+        <div class="panel chat-drawer" id="chat-drawer-desktop">
+          <div class="chat-drawer-body">
+            <div class="chat-tabs" id="chat-tabs"></div>
+            <div class="chat-messages" id="chat-messages-desktop"></div>
+            <div class="chat-input-row">
+              <input class="input" id="chat-input-desktop" placeholder="Escribe un mensaje…" maxlength="200">
+              <button class="btn btn-gold" id="chat-send-desktop">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat flotante (mobile) -->
+    <button class="chat-fab hidden" id="chat-fab">
+      💬<span class="badge hidden" id="chat-fab-badge">0</span>
+    </button>
+    <div class="chat-drawer" id="chat-drawer-mobile">
+      <div class="drawer-handle"></div>
+      <div class="chat-drawer-head">
+        <strong style="font-family:var(--font-ui);font-size:13px;letter-spacing:.06em;color:var(--gold-bright);text-transform:uppercase;">Chat</strong>
+        <button class="close-x" id="chat-drawer-close">✕</button>
+      </div>
+      <div class="chat-drawer-body">
+        <div class="chat-tabs" id="chat-tabs-mobile"></div>
+        <div class="chat-messages" id="chat-messages-mobile"></div>
+        <div class="chat-input-row">
+          <input class="input" id="chat-input-mobile" placeholder="Escribe un mensaje…" maxlength="200">
+          <button class="btn btn-gold" id="chat-send-mobile">➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════ Pantalla: fin de partida ════════ -->
+  <section class="screen hidden" id="screen-gameover">
+    <div class="frame center-col gameover-banner">
+      <div class="moon-emblem" id="emblem-gameover" style="width:80px;height:80px;"></div>
+      <h1 class="winner-title" id="gameover-title"></h1>
+      <div class="subtle" id="gameover-sub"></div>
+      <div class="final-roles" id="final-roles"></div>
+      <div class="gameover-actions" style="margin-top:22px;display:flex;gap:10px;width:100%;">
+        <button class="btn btn-gold hidden" id="btn-play-again" style="flex:1;">Jugar otra</button>
+        <button class="btn btn-ghost" id="btn-back-menu" style="flex:1;">Salir al menú</button>
+      </div>
+      <div class="subtle hidden" id="gameover-waiting-note" style="margin-top:12px;font-size:13px;">Esperando a que el anfitrión inicie otra ronda…</div>
+    </div>
+  </section>
+
+  <!-- ════════ Overlay dramático noche/día/votación ════════ -->
+  <div class="transition-overlay" id="transition-overlay">
+    <div class="transition-stars" id="transition-stars"></div>
+    <div class="transition-content">
+      <div class="transition-glyph" id="transition-glyph"></div>
+      <div class="transition-title" id="transition-title"></div>
+      <div class="transition-sub" id="transition-sub"></div>
+    </div>
+  </div>
+
+  <!-- ════════ Modal genérico (vidente, cazador, etc.) ════════ -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal-box frame" id="modal-box"></div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
