@@ -1,0 +1,13 @@
+{
+  "name": "lobos-de-castronegro",
+  "version": "1.0.0",
+  "description": "Juego online Los Hombres Lobo de Castronegro",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}
